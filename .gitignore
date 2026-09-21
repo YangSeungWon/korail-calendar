@@ -1,0 +1,11 @@
+__pycache__/
+*.pyc
+.DS_Store
+# Personal screenshots should not be committed by default.
+Screenshot*.png
+# Signed exports are created on a Mac.
+dist/승차권-캘린더.shortcut
+
+# Original personal travel fixtures stay local.
+fixtures/visible-cards.txt
+fixtures/expected-events.json
