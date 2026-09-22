@@ -3,8 +3,9 @@ import json
 import plistlib
 from pathlib import Path
 from uuid import uuid5, NAMESPACE_URL
-from tickets import (LEFT_REPLACEMENTS, RIGHT_REPLACEMENTS,
-                     CANONICAL_LEFT, CANONICAL_RIGHT, CANONICAL)
+from tickets import (LEFT_REPLACEMENTS, RIGHT_REPLACEMENTS, CANONICAL_LEFT, CANONICAL_RIGHT,
+                     DEPARTURE_PLAIN, ARRIVAL_PLAIN, START_ISO, END_ISO, TITLE, ORIGIN,
+                     DESTINATION, DEPARTURE_CLOCK, ARRIVAL_CLOCK, KEY)
 
 ROOT = Path(__file__).resolve().parents[1]
 # Serialised so the calendar row is explicit in the editor instead of silently
@@ -57,9 +58,6 @@ def replace(value, pattern, replacement):
 def match(value, pattern):
     return action('text.match', text=text(value), WFMatchTextPattern=pattern,
                   WFMatchTextCaseSensitive=True)
-
-def group(value, index):
-    return action('text.match.getgroup', WFInput=token(value), WFGetGroupType='Group At Index', WFGroupIndex=index)
 
 def literal(*parts):
     return action('gettext', WFTextActionText=text(*parts))
@@ -131,12 +129,8 @@ setvar('색인', action('number', WFNumberActionNumber=1))
 pair_loop, departure = loop(departures)
 arrival = action('getitemfromlist', WFInput=token(arrivals), WFItemSpecifier='Item At Index',
                  WFItemIndex=text(var('색인')))
-left = match(departure, CANONICAL_LEFT)
-day, origin, start = [group(left, i) for i in range(1, 4)]
-right = match(arrival, CANONICAL_RIGHT)
-destination, end = [group(right, i) for i in range(1, 3)]
-action('appendvariable', WFVariableName='후보', WFInput=token(
-    literal(day, ' ', origin, ' → ', destination, ' ', start, '–', end)))
+action('appendvariable', WFVariableName='후보', WFInput=token(literal(
+    replace(departure, *DEPARTURE_PLAIN), ' → ', replace(arrival, *ARRIVAL_PLAIN))))
 increment('색인')
 end_loop(pair_loop)
 otherwise(paired)
@@ -156,19 +150,21 @@ setvar('중복 수', zero)
 setvar('건너뜀 수', zero)
 
 selected_loop, item = loop(selected)
-parsed = match(item, CANONICAL)
-day, origin, destination, start, end = [group(parsed, i) for i in range(1, 6)]
-start_iso = literal(day, 'T', start, ':00+09:00')
-end_iso = literal(day, 'T', end, ':00+09:00')
-start_date = action('date', WFDateActionMode='Specified Date', WFDateActionDate=text(start_iso))
-end_date = action('date', WFDateActionMode='Specified Date', WFDateActionDate=text(end_iso))
+# Every field is rewritten out of the whole line rather than read from a capture group: the
+# group action returns nothing on the device, while $1 numbering in Replace Text works.
+origin = replace(item, *ORIGIN)
+destination = replace(item, *DESTINATION)
+start_date = action('date', WFDateActionMode='Specified Date',
+                    WFDateActionDate=text(replace(item, *START_ISO)))
+end_date = action('date', WFDateActionMode='Specified Date',
+                  WFDateActionDate=text(replace(item, *END_ISO)))
 # Numeric clock comparison avoids locale-dependent date condition serialization.
-start_num = replace(start, ':', '')
-end_num = replace(end, ':', '')
+start_num = replace(replace(item, *DEPARTURE_CLOCK), ':', '')
+end_num = replace(replace(item, *ARRIVAL_CLOCK), ':', '')
 difference = action('math', WFInput=token(end_num), WFMathOperation='-', WFMathOperand=text(start_num))
 valid = begin_if(difference, 2, WFNumberValue='0')
 same_station = begin_if(origin, 5, WFConditionalActionString=text(destination))
-key = literal('rail-calendar:v1:', day, ':', origin, ':', destination, ':', start, ':', end)
+key = replace(item, *KEY)
 found = action('filter.calendarevents', WFContentItemFilter={
     'Value': {'WFActionParameterFilterPrefix': 1, 'WFContentPredicateBoundedDate': False,
               'WFActionParameterFilterTemplates': [
@@ -177,9 +173,12 @@ found = action('filter.calendarevents', WFContentItemFilter={
     'WFSerializationType': 'WFContentPredicateTableTemplate'}, WFContentItemLimitEnabled=True,
     WFContentItemLimitNumber=1)
 missing = begin_if(found, 101)
+# Built before the index is taken: evaluating it inside the call would append an action first
+# and leave the import question pointing one action short of the event.
+title = replace(item, *TITLE)
 new_event_index = len(A)
 created = action('addnewevent', WFCalendarItemCalendar=CALENDAR,
-    WFCalendarItemTitle=text('열차 ', origin, ' → ', destination),
+    WFCalendarItemTitle=text(title),
     WFCalendarItemLocation=text(origin), WFCalendarItemDates=True,
     WFCalendarItemStartDate=text(start_date), WFCalendarItemEndDate=text(end_date),
     WFCalendarItemAllDay=False, WFCalendarItemNotes=text(key, '\n승차권 화면에서 등록. 변경·취소 시 직접 수정하세요.'),

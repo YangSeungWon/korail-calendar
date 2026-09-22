@@ -1,19 +1,21 @@
-"""Throwaway probe: verify the crop primitives on a real device before rewriting the shortcut.
+"""Throwaway probe: does 'Get Group from Matched Text' index the way this project assumes?
 
-iOS OCR groups the whole screen into vertical columns, so a card's arrival station and time
-get separated from its header. Cropping the screenshot in half is meant to make the split
-deterministic instead of depending on Vision's reading order. This probe only checks that the
-image-detail and crop actions exist and accept the parameters used here.
+The candidate list used to be the matched strings themselves, so group extraction never ran on
+a device. The cropped-halves build rebuilds each candidate out of capture groups, and on the
+device the station names and arrival time came back empty -- so check what each index returns.
 """
 import plistlib
+import sys
 from pathlib import Path
 from uuid import uuid5, NAMESPACE_URL
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from tickets import CANONICAL_LEFT
 
 ROOT = Path(__file__).resolve().parents[1]
 A = []
 
 def uid(label):
-    return str(uuid5(NAMESPACE_URL, 'rail-calendar/diag2/' + label)).upper()
+    return str(uuid5(NAMESPACE_URL, 'rail-calendar/diag3/' + label)).upper()
 
 def action(name, **parameters):
     identity = uid(str(len(A)) + '/' + name)
@@ -40,30 +42,28 @@ def text(*parts):
 def show(*parts):
     return action('showresult', Text=text(*parts))
 
-shot = action('getlastscreenshot', WFGetLatestPhotoCount=1)
+sample = action('gettext', WFTextActionText=text('⟦2030-09-23 | 서울 | 19:10⟧'))
+matched = action('text.match', text=text(sample), WFMatchTextPattern=CANONICAL_LEFT,
+                 WFMatchTextCaseSensitive=True)
+show('① 매칭된 문자열 ↓\n', matched, '\n\n비어 있으면 매칭 자체가 실패한 것입니다.')
 
-width = action('properties.images', WFInput=token(shot), WFContentItemPropertyName='Width')
-height = action('properties.images', WFInput=token(shot), WFContentItemPropertyName='Height')
-show('① 가로 ', width, ' / 세로 ', height, '\n둘 다 숫자로 보이면 이미지 정보 액션은 정상입니다.')
+def at(index):
+    return action('text.match.getgroup', WFInput=token(matched),
+                  WFGetGroupType='Group At Index', WFGroupIndex=index)
 
-# Literal numbers go in as numbers; text() is for variable references only.
-half = action('math', WFInput=token(width), WFMathOperation='÷', WFMathOperand=2)
+show('② 인덱스별 그룹\n\n0 → [', at(0), ']\n1 → [', at(1), ']\n2 → [', at(2), ']\n3 → [', at(3), ']')
 
-left = action('image.crop', WFInput=token(shot), WFImageCropWidth=text(half),
-              WFImageCropHeight=text(height), WFImageCropPosition='Top Left')
-right = action('image.crop', WFInput=token(shot), WFImageCropWidth=text(half),
-               WFImageCropHeight=text(height), WFImageCropPosition='Top Right')
-
-show('② 왼쪽 절반 OCR ↓\n', action('extracttextfromimage', WFImage=token(left)))
-show('③ 오른쪽 절반 OCR ↓\n', action('extracttextfromimage', WFImage=token(right)))
+# If 'Group At Index' is not the right selector, this is the other shape the action takes.
+show('③ 전체 그룹 ↓\n', action('text.match.getgroup', WFInput=token(matched),
+                             WFGetGroupType='All Groups'))
 
 workflow = {
-    'WFWorkflowName': '승차권 진단2', 'WFWorkflowActions': A,
+    'WFWorkflowName': '승차권 진단3', 'WFWorkflowActions': A,
     'WFWorkflowClientVersion': '4046.0.2.2', 'WFWorkflowMinimumClientVersion': 900,
     'WFWorkflowMinimumClientVersionString': '900',
     'WFWorkflowIcon': {'WFWorkflowIconStartColor': 4271458815, 'WFWorkflowIconGlyphNumber': 59511},
     'WFWorkflowTypes': ['ActionExtension'], 'WFWorkflowInputContentItemClasses': ['WFImageContentItem'],
     'WFWorkflowHasOutputFallback': False, 'WFWorkflowHasShortcutInputVariables': True,
 }
-(ROOT / 'dist/승차권-진단2.unsigned.shortcut').write_bytes(plistlib.dumps(workflow, fmt=plistlib.FMT_BINARY))
-print(f'Built crop probe with {len(A)} actions.')
+(ROOT / 'dist/승차권-진단3.unsigned.shortcut').write_bytes(plistlib.dumps(workflow, fmt=plistlib.FMT_BINARY))
+print(f'Built group probe with {len(A)} actions.')

@@ -25,18 +25,34 @@ TIME = r'([01][0-9]|2[0-3]):([0-5][0-9])'
 # digit-free lines only is what keeps this from reaching into the next card: every date and
 # time line carries digits.
 NOISE = r'(?:[^\n0-9]*\n)*?'
-# Left half: date, '기차 승차권', origin, departure time. Right half: destination, arrival
-# time, mixed in with '1매' and chip labels, so a station is only taken when a time follows it.
+# Left half: date, '기차 승차권', origin, departure time. Right half: destination and arrival
+# time. The right half is anchored on the '1매' of the same header row that anchors the left,
+# so a card clipped by the screen edge drops out of both halves together instead of only one.
 LEFT = HEADER + NOISE + STATION + r'\s+' + TIME + r'(?![0-9:])'
-RIGHT = STATION + r'\s+' + TIME + r'(?![0-9:])'
-# Separate captures for times keep ICU and Python replacements identical.
+RIGHT = r'[0-9]+\s*매\s*' + NOISE + STATION + r'\s+' + TIME + r'(?![0-9:])'
+# Separate captures for times keep ICU and Python replacements identical. The markers keep a
+# replaced row distinguishable from ordinary text during the match that follows.
 LEFT_REPLACEMENTS = [(LEFT, '⟦$1-$2-$3 | $4 | $5:$6⟧')]
 RIGHT_REPLACEMENTS = [(RIGHT, '⟪$1 | $2:$3⟫')]
 CANONICAL_LEFT = r'⟦(20[0-9]{2}-[0-9]{2}-[0-9]{2}) \| ([가-힣]{1,12}) \| ([0-9]{2}:[0-9]{2})⟧'
 CANONICAL_RIGHT = r'⟪([가-힣]{1,12}) \| ([0-9]{2}:[0-9]{2})⟫'
-# The paired form. The shortcut builds this itself rather than finding it in OCR output, so
-# it carries no marker characters -- it is read as-is on the selection screen.
-CANONICAL = r'(20[0-9]{2}-[0-9]{2}-[0-9]{2}) ([가-힣]{1,12}) → ([가-힣]{1,12}) ([0-9]{2}:[0-9]{2})–([0-9]{2}:[0-9]{2})'
+# 'Get Group from Matched Text' returns nothing on the device at every index, so no field is
+# ever read out of a match. Everything is derived with Replace Text instead, whose $1 numbering
+# does work there. These strip the markers so the two halves can simply be concatenated.
+DEPARTURE_PLAIN = (CANONICAL_LEFT, '$1 $2 $3')
+ARRIVAL_PLAIN = (CANONICAL_RIGHT, '$1 $2')
+# One candidate, as shown on the selection screen: '2030-09-23 서울 19:10 → 부산 21:50'.
+CANDIDATE = (r'(20[0-9]{2}-[0-9]{2}-[0-9]{2}) ([가-힣]{1,12}) ([0-9]{2}:[0-9]{2})'
+             r' → ([가-힣]{1,12}) ([0-9]{2}:[0-9]{2})')
+# Every value the shortcut needs from a selected candidate, as a replacement of the whole line.
+START_ISO = (CANDIDATE, '$1T$3:00+09:00')
+END_ISO = (CANDIDATE, '$1T$5:00+09:00')
+TITLE = (CANDIDATE, '열차 $2 → $4')
+ORIGIN = (CANDIDATE, '$2')
+DESTINATION = (CANDIDATE, '$4')
+DEPARTURE_CLOCK = (CANDIDATE, '$3')
+ARRIVAL_CLOCK = (CANDIDATE, '$5')
+KEY = (CANDIDATE, 'rail-calendar:v1:$1:$2:$4:$3:$5')
 KST = timezone(timedelta(hours=9))
 
 
@@ -79,5 +95,5 @@ def parse(left, right):
         seen.add(key)
         events.append(dict(title=f'열차 {origin} → {destination}', start=begin.isoformat(),
                            end=finish.isoformat(), key=key,
-                           label=f'{day} {origin} → {destination} {start}–{end}'))
+                           label=f'{day} {origin} {start} → {destination} {end}'))
     return events

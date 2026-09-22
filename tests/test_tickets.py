@@ -131,6 +131,20 @@ class ShortcutStructureTests(unittest.TestCase):
         self.assertLess(max(counts), guard)
         self.assertLess(guard, lookup)
 
+    def test_no_capture_group_extraction(self):
+        """The group action returns nothing on the device; every field comes from Replace Text."""
+        for action in self.actions:
+            self.assertNotIn('getgroup', action['WFWorkflowActionIdentifier'])
+
+    def test_every_event_field_is_derived_from_the_candidate(self):
+        from tickets import START_ISO, END_ISO, TITLE, ORIGIN, DESTINATION, KEY
+        replacements = [(a['WFWorkflowActionParameters'].get('WFReplaceTextFind'),
+                         a['WFWorkflowActionParameters'].get('WFReplaceTextReplace'))
+                        for a in self.actions
+                        if a['WFWorkflowActionIdentifier'].endswith('text.replace')]
+        for derived in (START_ISO, END_ISO, TITLE, ORIGIN, DESTINATION, KEY):
+            self.assertIn(derived, replacements)
+
     def test_scopes_references_and_token_offsets(self):
         seen, stack = set(), []
         def visit(obj):
