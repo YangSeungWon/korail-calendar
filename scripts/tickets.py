@@ -26,10 +26,14 @@ TIME = r'([01][0-9]|2[0-3]):([0-5][0-9])'
 # time line carries digits.
 NOISE = r'(?:[^\n0-9]*\n)*?'
 # Left half: date, '기차 승차권', origin, departure time. Right half: destination and arrival
-# time. The right half is anchored on the '1매' of the same header row that anchors the left,
-# so a card clipped by the screen edge drops out of both halves together instead of only one.
+# time. Both halves anchor on the blue header row -- the date on the left, the 'N일 전' on the
+# right -- because the two are at the same height. A card clipped by the screen edge loses that
+# row from both crops at once, so it drops out of both lists and the rest still line up. Anchor
+# the right on the '1매' row below instead and a clipped date leaves the counts unequal, which
+# discards the whole screenshot.
 LEFT = HEADER + NOISE + STATION + r'\s+' + TIME + r'(?![0-9:])'
-RIGHT = r'[0-9]+\s*매\s*' + NOISE + STATION + r'\s+' + TIME + r'(?![0-9:])'
+RIGHT = (r'(?:[0-9]+\s*일\s*전|오늘|내일)\s*(?:[0-9]+\s*매\s*)?' + NOISE
+         + STATION + r'\s+' + TIME + r'(?![0-9:])')
 # Separate captures for times keep ICU and Python replacements identical. The markers keep a
 # replaced row distinguishable from ordinary text during the match that follows.
 LEFT_REPLACEMENTS = [(LEFT, '⟦$1-$2-$3 | $4 | $5:$6⟧')]

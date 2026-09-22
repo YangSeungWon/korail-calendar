@@ -47,6 +47,12 @@ class TicketTests(unittest.TestCase):
         self.assertEqual(parse(left.replace('19:10', '19 ： 10'), right.replace('21:50', '21 ： 50')),
                          parse(left, right))
 
+    def test_clipped_header_row_drops_only_that_card(self):
+        """Scrolling clips the blue header row, which both halves anchor on."""
+        left, right = joined(card(), card('2030.09.27', '부산', '서울', '09:00', '11:40'))
+        clipped = parse(left.replace('2030.09.23 (Wed)\n', ''), right.replace('내일\n', '', 1))
+        self.assertEqual([e['title'] for e in clipped], ['🚅 부산 → 서울'])
+
     def test_unequal_halves_offer_nothing(self):
         left, _ = joined(card(), card('2030.09.27'))
         _, right = card()
