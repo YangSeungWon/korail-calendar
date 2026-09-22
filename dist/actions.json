@@ -48,10 +48,9 @@
       }
     },
     {
-      "WFWorkflowActionIdentifier": "is.workflow.actions.getlastscreenshot",
+      "WFWorkflowActionIdentifier": "is.workflow.actions.takescreenshot",
       "WFWorkflowActionParameters": {
-        "WFGetLatestPhotoCount": 1,
-        "UUID": "7A0ACD9C-6E1D-5A61-AEFF-03986FAAE519"
+        "UUID": "41FEC67A-3837-51F8-8654-BC4E6C736197"
       }
     },
     {
@@ -61,7 +60,7 @@
         "WFInput": {
           "Value": {
             "Type": "ActionOutput",
-            "OutputUUID": "7A0ACD9C-6E1D-5A61-AEFF-03986FAAE519",
+            "OutputUUID": "41FEC67A-3837-51F8-8654-BC4E6C736197",
             "OutputName": "Result"
           },
           "WFSerializationType": "WFTextTokenAttachment"
