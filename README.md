@@ -12,7 +12,7 @@
 
 ## 설치
 
-[**Releases**](../../releases/latest)에서 `승차권-캘린더.shortcut`을 아이폰으로 내려받아 엽니다. Mac에서 받았다면 AirDrop으로 아이폰에 보내세요.
+[**Releases**](../../releases/latest)에서 `korail-calendar.shortcut`을 아이폰으로 내려받아 엽니다. Mac에서 받았다면 AirDrop으로 아이폰에 보내세요.
 
 파일을 열면 단축어 앱이 열리고 미리보기가 뜹니다. 맨 아래 **‘단축어 추가’**를 누르면 설치됩니다.
 
