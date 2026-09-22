@@ -13,3 +13,4 @@ fixtures/expected-events.json
 # Diagnostic build is throwaway.
 dist/승차권-진단.shortcut
 dist/승차권-진단2.shortcut
+dist/승차권-진단3.shortcut
