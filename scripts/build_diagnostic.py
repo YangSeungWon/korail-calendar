@@ -42,7 +42,7 @@ def text(*parts):
 def show(*parts):
     return action('showresult', Text=text(*parts))
 
-sample = action('gettext', WFTextActionText=text('⟦2026-09-23 | 포항 | 20:42⟧'))
+sample = action('gettext', WFTextActionText=text('⟦2030-09-23 | 서울 | 19:10⟧'))
 matched = action('text.match', text=text(sample), WFMatchTextPattern=CANONICAL_LEFT,
                  WFMatchTextCaseSensitive=True)
 show('① 매칭된 문자열 ↓\n', matched, '\n\n비어 있으면 매칭 자체가 실패한 것입니다.')

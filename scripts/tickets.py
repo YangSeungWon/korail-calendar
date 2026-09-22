@@ -45,7 +45,7 @@ CANONICAL_RIGHT = r'⟪([가-힣]{1,12}) \| ([0-9]{2}:[0-9]{2})⟫'
 # does work there. These strip the markers so the two halves can simply be concatenated.
 DEPARTURE_PLAIN = (CANONICAL_LEFT, '$1 $2 $3')
 ARRIVAL_PLAIN = (CANONICAL_RIGHT, '$1 $2')
-# One candidate, as shown on the selection screen: '2026-09-23 포항 20:42 → 수서 23:12'.
+# One candidate, as shown on the selection screen: '2030-09-23 서울 19:10 → 부산 21:50'.
 CANDIDATE = (r'(20[0-9]{2}-[0-9]{2}-[0-9]{2}) ([가-힣]{1,12}) ([0-9]{2}:[0-9]{2})'
              r' → ([가-힣]{1,12}) ([0-9]{2}:[0-9]{2})')
 # Every value the shortcut needs from a selected candidate, as a replacement of the whole line.
