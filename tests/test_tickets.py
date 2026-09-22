@@ -35,7 +35,7 @@ class TicketTests(unittest.TestCase):
         """The right half carries no dates, so only order can connect it to the left half."""
         left, right = joined(card(), card('2030.09.27', '부산', '서울', '09:00', '11:40'))
         events = parse(left, right)
-        self.assertEqual([e['title'] for e in events], ['열차 서울 → 부산', '열차 부산 → 서울'])
+        self.assertEqual([e['title'] for e in events], ['🚅 서울 → 부산', '🚅 부산 → 서울'])
 
     def test_chips_between_header_and_station_are_skipped(self):
         left, right = card()

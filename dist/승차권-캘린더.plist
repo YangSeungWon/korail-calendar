@@ -2162,7 +2162,7 @@
 				<key>WFReplaceTextRegularExpression</key>
 				<true/>
 				<key>WFReplaceTextReplace</key>
-				<string>열차 $2 → $4</string>
+				<string>🚅 $2 → $4</string>
 			</dict>
 		</dict>
 		<dict>
