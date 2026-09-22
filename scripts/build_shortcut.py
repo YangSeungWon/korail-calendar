@@ -3,7 +3,8 @@ import json
 import plistlib
 from pathlib import Path
 from uuid import uuid5, NAMESPACE_URL
-from tickets import REPLACEMENTS, CANONICAL
+from tickets import (LEFT_REPLACEMENTS, RIGHT_REPLACEMENTS,
+                     CANONICAL_LEFT, CANONICAL_RIGHT, CANONICAL)
 
 ROOT = Path(__file__).resolve().parents[1]
 # Serialised so the calendar row is explicit in the editor instead of silently
@@ -72,6 +73,10 @@ def setvar(name, value):
 def var(name):
     return {'Type': 'Variable', 'VariableName': name}
 
+def increment(name):
+    n = action('math', WFInput=token(var(name)), WFMathOperation='+', WFMathOperand=1)
+    setvar(name, n)
+
 def loop(value):
     g = uid('loop/' + str(len(A)))
     a = action('repeat.each', GroupingIdentifier=g, WFControlFlowMode=0, WFInput=token(value))
@@ -95,15 +100,47 @@ end_if(branch)
 empty = action('nothing')
 setvar('후보', empty)
 images_loop, image_item = loop(var('승차권 이미지'))
-ocr = action('extracttextfromimage', WFImage=token(image_item))
-clean = replace(ocr, '：', ':')
-clean = replace(clean, r'(?<=[0-9])\s*:\s*(?=[0-9])', ':')
-for pattern, replacement in REPLACEMENTS:
-    clean = replace(clean, pattern, replacement)
-candidates = match(clean, CANONICAL)
-exists = begin_if(candidates, 100)
-action('appendvariable', WFVariableName='후보', WFInput=token(candidates))
-end_if(exists)
+# Vision reads the whole screen in columns, so a card's arrival time can come back separated
+# from its header by other cards. Cropping down the middle makes each half a single narrow
+# column that is read top to bottom, which is what lets departures and arrivals be paired by
+# position instead of by proximity in the text.
+width = action('properties.images', WFInput=token(image_item), WFContentItemPropertyName='Width')
+height = action('properties.images', WFInput=token(image_item), WFContentItemPropertyName='Height')
+half = action('math', WFInput=token(width), WFMathOperation='÷', WFMathOperand=2)
+
+def read_half(position, replacements, canonical):
+    cropped = action('image.crop', WFInput=token(image_item), WFImageCropWidth=text(half),
+                     WFImageCropHeight=text(height), WFImageCropPosition=position)
+    clean = action('extracttextfromimage', WFImage=token(cropped))
+    clean = replace(clean, '：', ':')
+    clean = replace(clean, r'(?<=[0-9])\s*:\s*(?=[0-9])', ':')
+    for pattern, replacement in replacements:
+        clean = replace(clean, pattern, replacement)
+    return match(clean, canonical)
+
+departures = read_half('Top Left', LEFT_REPLACEMENTS, CANONICAL_LEFT)
+arrivals = read_half('Top Right', RIGHT_REPLACEMENTS, CANONICAL_RIGHT)
+# Pairing is positional, so unequal counts mean the halves disagree about how many cards are
+# on screen -- a card clipped by the screen edge, say. Attaching one card's arrival to another
+# card would create a plausible-looking wrong event, so this offers nothing instead.
+gap = action('math', WFInput=token(action('count', Input=token(departures), WFCountType='Items')),
+             WFMathOperation='-', WFMathOperand=text(action('count', Input=token(arrivals), WFCountType='Items')))
+paired = begin_if(gap, 4, WFNumberValue='0')
+setvar('색인', action('number', WFNumberActionNumber=1))
+pair_loop, departure = loop(departures)
+arrival = action('getitemfromlist', WFInput=token(arrivals), WFItemSpecifier='Item At Index',
+                 WFItemIndex=text(var('색인')))
+left = match(departure, CANONICAL_LEFT)
+day, origin, start = [group(left, i) for i in range(1, 4)]
+right = match(arrival, CANONICAL_RIGHT)
+destination, end = [group(right, i) for i in range(1, 3)]
+action('appendvariable', WFVariableName='후보', WFInput=token(
+    literal('⟦', day, ' | ', origin, ' → ', destination, ' | ', start, '–', end, '⟧')))
+increment('색인')
+end_loop(pair_loop)
+otherwise(paired)
+warn('카드를 온전히 읽지 못했습니다. 출발 정보와 도착 정보의 개수가 맞지 않습니다. 잘못 짝지어진 일정을 만들지 않으려고 등록을 건너뜁니다. 카드 전체가 화면 안에 들어오도록 조정한 뒤 다시 실행하세요.')
+end_if(paired)
 end_loop(images_loop)
 none = begin_if(var('후보'), 101)
 warn('완전히 보이는 승차권을 찾지 못했습니다. 뒷면 탭으로 실행했다면 먼저 승차권 목록을 스크린샷으로 찍었는지 확인하세요. 날짜·출발역·도착역·두 시간이 모두 보이게 스크롤한 뒤 다시 실행하세요. 상세 화면은 아직 지원하지 않습니다.')
@@ -116,10 +153,6 @@ zero = action('number', WFNumberActionNumber=0)
 setvar('추가 수', zero)
 setvar('중복 수', zero)
 setvar('건너뜀 수', zero)
-
-def increment(name):
-    n = action('math', WFInput=token(var(name)), WFMathOperation='+', WFMathOperand=1)
-    setvar(name, n)
 
 selected_loop, item = loop(selected)
 parsed = match(item, CANONICAL)
