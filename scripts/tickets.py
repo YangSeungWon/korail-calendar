@@ -47,7 +47,7 @@ CANDIDATE = (r'(20[0-9]{2}-[0-9]{2}-[0-9]{2}) ([가-힣]{1,12}) ([0-9]{2}:[0-9]{
 # Every value the shortcut needs from a selected candidate, as a replacement of the whole line.
 START_ISO = (CANDIDATE, '$1T$3:00+09:00')
 END_ISO = (CANDIDATE, '$1T$5:00+09:00')
-TITLE = (CANDIDATE, '열차 $2 → $4')
+TITLE = (CANDIDATE, '🚅 $2 → $4')
 ORIGIN = (CANDIDATE, '$2')
 DESTINATION = (CANDIDATE, '$4')
 DEPARTURE_CLOCK = (CANDIDATE, '$3')
@@ -93,7 +93,7 @@ def parse(left, right):
         if key in seen:
             continue
         seen.add(key)
-        events.append(dict(title=f'열차 {origin} → {destination}', start=begin.isoformat(),
+        events.append(dict(title=f'🚅 {origin} → {destination}', start=begin.isoformat(),
                            end=finish.isoformat(), key=key,
                            label=f'{day} {origin} {start} → {destination} {end}'))
     return events
