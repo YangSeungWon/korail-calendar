@@ -8,7 +8,7 @@ from tickets import REPLACEMENTS, CANONICAL
 ROOT = Path(__file__).resolve().parents[1]
 # Serialised so the calendar row is explicit in the editor instead of silently
 # falling back to the device default. Must match the calendar name on the device.
-CALENDAR = '직장'
+CALENDAR = '집'
 A = []
 
 def uid(label):

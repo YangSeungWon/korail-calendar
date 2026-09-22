@@ -837,7 +837,7 @@
     {
       "WFWorkflowActionIdentifier": "is.workflow.actions.addnewevent",
       "WFWorkflowActionParameters": {
-        "WFCalendarItemCalendar": "직장",
+        "WFCalendarItemCalendar": "집",
         "WFCalendarItemTitle": {
           "Value": {
             "string": "열차 ￼ → ￼",

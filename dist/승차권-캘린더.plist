@@ -1409,7 +1409,7 @@
 				<key>WFCalendarItemAllDay</key>
 				<false/>
 				<key>WFCalendarItemCalendar</key>
-				<string>직장</string>
+				<string>집</string>
 				<key>WFCalendarItemDates</key>
 				<true/>
 				<key>WFCalendarItemEndDate</key>
