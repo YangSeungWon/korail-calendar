@@ -81,12 +81,14 @@ def loop(value):
 def end_loop(g):
     return action('repeat.each', GroupingIdentifier=g, WFControlFlowMode=2)
 
-action('comment', WFCommentActionText='승차권 → 캘린더 (기기 검증 전 초안)\n공유한 이미지 또는 현재 화면에서 완전히 보이는 승차권을 처리합니다. 아래로 스크롤한 후 다시 실행하세요. 이미 등록한 일정은 메모의 식별자로 확인합니다. 취소·변경은 자동 반영하지 않습니다.')
+action('comment', WFCommentActionText='승차권 → 캘린더 (기기 검증 전 초안)\n공유한 이미지, 또는 입력이 없으면 가장 최근 스크린샷에서 완전히 보이는 승차권을 처리합니다. 뒷면 탭으로 쓸 때는 먼저 스크린샷을 찍으세요. 아래로 스크롤한 후 다시 실행하세요. 이미 등록한 일정은 메모의 식별자로 확인합니다. 취소·변경은 자동 반영하지 않습니다.')
 input_value = {'Type': 'ExtensionInput'}
 branch = begin_if(input_value, 100)
 setvar('승차권 이미지', input_value)
 otherwise(branch)
-screenshot = action('takescreenshot')
+# iOS Shortcuts cannot capture the screen itself; 'Take Screenshot' is a macOS-only action.
+# Back Tap therefore reads the screenshot the user has just taken with the system gesture.
+screenshot = action('getlastscreenshot', WFGetLatestPhotoCount=1)
 setvar('승차권 이미지', screenshot)
 end_if(branch)
 # Multiple share-sheet screenshots can be processed together; no card spans images.
@@ -104,7 +106,7 @@ action('appendvariable', WFVariableName='후보', WFInput=token(candidates))
 end_if(exists)
 end_loop(images_loop)
 none = begin_if(var('후보'), 101)
-warn('완전히 보이는 승차권을 찾지 못했습니다. 날짜·출발역·도착역·두 시간이 모두 보이게 스크롤한 뒤 다시 실행하세요. 상세 화면은 아직 지원하지 않습니다.')
+warn('완전히 보이는 승차권을 찾지 못했습니다. 뒷면 탭으로 실행했다면 먼저 승차권 목록을 스크린샷으로 찍었는지 확인하세요. 날짜·출발역·도착역·두 시간이 모두 보이게 스크롤한 뒤 다시 실행하세요. 상세 화면은 아직 지원하지 않습니다.')
 action('exit')
 end_if(none)
 selected = action('choosefromlist', WFInput=token(var('후보')),
