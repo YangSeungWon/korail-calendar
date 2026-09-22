@@ -6,6 +6,9 @@ from uuid import uuid5, NAMESPACE_URL
 from tickets import REPLACEMENTS, CANONICAL
 
 ROOT = Path(__file__).resolve().parents[1]
+# Serialised so the calendar row is explicit in the editor instead of silently
+# falling back to the device default. Must match the calendar name on the device.
+CALENDAR = '직장'
 A = []
 
 def uid(label):
@@ -139,7 +142,8 @@ found = action('filter.calendarevents', WFContentItemFilter={
     WFContentItemLimitNumber=1)
 missing = begin_if(found, 101)
 new_event_index = len(A)
-created = action('addnewevent', WFCalendarItemTitle=text('열차 ', origin, ' → ', destination),
+created = action('addnewevent', WFCalendarItemCalendar=CALENDAR,
+    WFCalendarItemTitle=text('열차 ', origin, ' → ', destination),
     WFCalendarItemLocation=text(origin), WFCalendarItemDates=True,
     WFCalendarItemStartDate=text(start_date), WFCalendarItemEndDate=text(end_date),
     WFCalendarItemAllDay=False, WFCalendarItemNotes=text(key, '\n승차권 화면에서 등록. 변경·취소 시 직접 수정하세요.'),
