@@ -82,13 +82,11 @@
 		</dict>
 		<dict>
 			<key>WFWorkflowActionIdentifier</key>
-			<string>is.workflow.actions.getlastscreenshot</string>
+			<string>is.workflow.actions.takescreenshot</string>
 			<key>WFWorkflowActionParameters</key>
 			<dict>
 				<key>UUID</key>
-				<string>7A0ACD9C-6E1D-5A61-AEFF-03986FAAE519</string>
-				<key>WFGetLatestPhotoCount</key>
-				<integer>1</integer>
+				<string>41FEC67A-3837-51F8-8654-BC4E6C736197</string>
 			</dict>
 		</dict>
 		<dict>
@@ -105,7 +103,7 @@
 						<key>OutputName</key>
 						<string>Result</string>
 						<key>OutputUUID</key>
-						<string>7A0ACD9C-6E1D-5A61-AEFF-03986FAAE519</string>
+						<string>41FEC67A-3837-51F8-8654-BC4E6C736197</string>
 						<key>Type</key>
 						<string>ActionOutput</string>
 					</dict>

@@ -91,9 +91,10 @@ input_value = {'Type': 'ExtensionInput'}
 branch = begin_if(input_value, 100)
 setvar('승차권 이미지', input_value)
 otherwise(branch)
-# iOS Shortcuts cannot capture the screen itself; 'Take Screenshot' is a macOS-only action.
-# Back Tap therefore reads the screenshot the user has just taken with the system gesture.
-screenshot = action('getlastscreenshot', WFGetLatestPhotoCount=1)
+# Back Tap supplies no input, so capture the screen that is showing. 'Take Screenshot' does
+# exist on iOS; an earlier build read the latest screenshot instead, which only looked
+# necessary while the real fault -- Vision's column reading order -- was still unfound.
+screenshot = action('takescreenshot')
 setvar('승차권 이미지', screenshot)
 end_if(branch)
 # Multiple share-sheet screenshots can be processed together; no card spans images.
