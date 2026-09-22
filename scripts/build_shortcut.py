@@ -136,7 +136,7 @@ day, origin, start = [group(left, i) for i in range(1, 4)]
 right = match(arrival, CANONICAL_RIGHT)
 destination, end = [group(right, i) for i in range(1, 3)]
 action('appendvariable', WFVariableName='후보', WFInput=token(
-    literal('⟦', day, ' | ', origin, ' → ', destination, ' | ', start, '–', end, '⟧')))
+    literal(day, ' ', origin, ' → ', destination, ' ', start, '–', end)))
 increment('색인')
 end_loop(pair_loop)
 otherwise(paired)
