@@ -719,29 +719,29 @@
       "WFWorkflowActionParameters": {
         "WFTextActionText": {
           "Value": {
-            "string": "⟦￼ | ￼ → ￼ | ￼–￼⟧",
+            "string": "￼ ￼ → ￼ ￼–￼",
             "attachmentsByRange": {
-              "{1, 1}": {
+              "{0, 1}": {
                 "Type": "ActionOutput",
                 "OutputUUID": "EA0CC543-BEDA-5F66-851D-91A3D846969D",
                 "OutputName": "Result"
               },
-              "{5, 1}": {
+              "{2, 1}": {
                 "Type": "ActionOutput",
                 "OutputUUID": "EE35BAF8-2A22-55C9-B822-69BB8739E427",
                 "OutputName": "Result"
               },
-              "{9, 1}": {
+              "{6, 1}": {
                 "Type": "ActionOutput",
                 "OutputUUID": "12465892-9B25-575D-AAB5-49D652439298",
                 "OutputName": "Result"
               },
-              "{13, 1}": {
+              "{8, 1}": {
                 "Type": "ActionOutput",
                 "OutputUUID": "0A22C342-CA9A-5D01-8431-BD8FA3DFD332",
                 "OutputName": "Result"
               },
-              "{15, 1}": {
+              "{10, 1}": {
                 "Type": "ActionOutput",
                 "OutputUUID": "9471F9E1-098B-53DE-8725-EA345FF9FCF0",
                 "OutputName": "Result"
@@ -989,7 +989,7 @@
           },
           "WFSerializationType": "WFTextTokenString"
         },
-        "WFMatchTextPattern": "⟦(20[0-9]{2}-[0-9]{2}-[0-9]{2}) \\| ([가-힣]{1,12}) → ([가-힣]{1,12}) \\| ([0-9]{2}:[0-9]{2})–([0-9]{2}:[0-9]{2})⟧",
+        "WFMatchTextPattern": "(20[0-9]{2}-[0-9]{2}-[0-9]{2}) ([가-힣]{1,12}) → ([가-힣]{1,12}) ([0-9]{2}:[0-9]{2})–([0-9]{2}:[0-9]{2})",
         "WFMatchTextCaseSensitive": true,
         "UUID": "6B3C5163-C937-558E-9088-09EC797D90CE"
       }

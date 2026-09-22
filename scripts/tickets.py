@@ -34,8 +34,9 @@ LEFT_REPLACEMENTS = [(LEFT, '⟦$1-$2-$3 | $4 | $5:$6⟧')]
 RIGHT_REPLACEMENTS = [(RIGHT, '⟪$1 | $2:$3⟫')]
 CANONICAL_LEFT = r'⟦(20[0-9]{2}-[0-9]{2}-[0-9]{2}) \| ([가-힣]{1,12}) \| ([0-9]{2}:[0-9]{2})⟧'
 CANONICAL_RIGHT = r'⟪([가-힣]{1,12}) \| ([0-9]{2}:[0-9]{2})⟫'
-# The paired form, built per card and shown on the selection screen.
-CANONICAL = r'⟦(20[0-9]{2}-[0-9]{2}-[0-9]{2}) \| ([가-힣]{1,12}) → ([가-힣]{1,12}) \| ([0-9]{2}:[0-9]{2})–([0-9]{2}:[0-9]{2})⟧'
+# The paired form. The shortcut builds this itself rather than finding it in OCR output, so
+# it carries no marker characters -- it is read as-is on the selection screen.
+CANONICAL = r'(20[0-9]{2}-[0-9]{2}-[0-9]{2}) ([가-힣]{1,12}) → ([가-힣]{1,12}) ([0-9]{2}:[0-9]{2})–([0-9]{2}:[0-9]{2})'
 KST = timezone(timedelta(hours=9))
 
 
@@ -78,5 +79,5 @@ def parse(left, right):
         seen.add(key)
         events.append(dict(title=f'열차 {origin} → {destination}', start=begin.isoformat(),
                            end=finish.isoformat(), key=key,
-                           label=f'⟦{day} | {origin} → {destination} | {start}–{end}⟧'))
+                           label=f'{day} {origin} → {destination} {start}–{end}'))
     return events
